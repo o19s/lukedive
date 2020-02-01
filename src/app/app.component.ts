@@ -7,4 +7,5 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'lukedive';
+  version = 'v1.0.1';
 }
