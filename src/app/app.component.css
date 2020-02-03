@@ -28,3 +28,17 @@
     margin-left: auto;
     margin-right: 10px;
 }
+
+.bar {
+    fill: steelblue;
+}
+
+.bar:hover {
+    fill: khaki;
+}
+
+.axis-title {
+    fill: none;
+    stroke: black;
+    stroke-width: 0.5px;
+}
