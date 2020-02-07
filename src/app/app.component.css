@@ -28,17 +28,3 @@
     margin-left: auto;
     margin-right: 10px;
 }
-
-.bar {
-    fill: steelblue;
-}
-
-.bar:hover {
-    fill: chocolate;
-}
-
-.axis-title {
-    fill: none;
-    stroke: black;
-    stroke-width: 0.5px;
-}
