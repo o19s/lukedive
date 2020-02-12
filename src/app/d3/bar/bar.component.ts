@@ -26,7 +26,6 @@ export class D3BarComponent {
   private y: any;
 
   private fieldData: any;
-  private lukeData: any;
 
   private solrUrl = 'http://quepid-solr.dev.o19s.com:8985/solr/tmdb/admin/luke?fl=*';
 
@@ -37,18 +36,10 @@ export class D3BarComponent {
   ngOnInit() {
     // Snag the luke data from TMDB
     // TODO: Hook up a textbox and form so the user can specify any URL
-    this.solr.fetchLuke(this.solrUrl)
+    this.solr.fetchLukeCounts(this.solrUrl)
       .subscribe(
         (data: any) => {
-            this.lukeData = data;
-            this.fieldData = [];
-
-            // Organize field term counts into a structure easier to throw into d3
-            for ( let [key, value] of Object.entries(this.lukeData.fields)) {
-                let cast: any = value; // TODO: Create interface or find cleaner casting method? This fix cleans up an error during compilation
-                this.fieldData.push({field: key, count: cast.distinct});
-            }
-
+            this.fieldData = data;
             this.refresh();
         }
       );
