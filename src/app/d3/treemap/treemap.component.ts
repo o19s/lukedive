@@ -3,7 +3,9 @@ import { Component, ViewEncapsulation } from '@angular/core';
 import { SolrService } from './../../solr.service';
 
 import * as d3 from 'd3-selection';
+import * as d3Chromatic from 'd3-scale-chromatic';
 import * as d3Hierarchy from 'd3-hierarchy';
+import * as d3Interpolate from 'd3-interpolate';
 import * as d3Scale from 'd3-scale';
 import * as d3Shape from 'd3-shape';
 import * as d3Array from 'd3-array';
@@ -63,6 +65,7 @@ export class D3TreemapComponent {
   private drawTreemap() {
     let root = d3Hierarchy.hierarchy(this.fieldData).sum((d) => d.count);
 
+    // This call figures out positions and augments the root data
     d3Hierarchy.treemap()
       .size([this.width, this.height])
       .paddingTop(28)
@@ -70,15 +73,15 @@ export class D3TreemapComponent {
       .paddingInner(3)
       (root);
 
-    // Color scale
-    var color = d3Scale.scaleOrdinal()
-      .domain(['text'])
-      .range(['#402D54']);
+    let fader = (color) => d3Interpolate.interpolateRgb(color, '#fff')(0.2);
+    let color = d3Scale.scaleOrdinal(d3Chromatic.schemePaired.map(fader));
 
+    // Opacity scale
     var opacity = d3Scale.scaleLinear()
       .domain([10, 30])
       .range([.5,1]);
 
+    // Build the rectangles
     this.svg.selectAll('rect')
       .data(root.leaves())
       .enter()
@@ -89,6 +92,17 @@ export class D3TreemapComponent {
         .attr('height', (d) => d.y1 - d.y0)
         .style('stroke', 'black')
         .style('fill', (d) => color(d.parent.data.name))
-        .style('opacity', (d) => opacity(d.data.count))
+        .style('opacity', (d) => opacity(d.data.count));
+
+    // Field name labels
+    this.svg.selectAll('text')
+      .data(root.leaves())
+      .enter()
+      .append('text')
+      .attr('x', (d) => d.x0 + 5)
+      .attr('y', (d) => d.y0 + 20)
+      .text((d) => d.data.name)
+      .attr('font-size', '8px')
+      .attr('fill', 'black');
   }
 }
