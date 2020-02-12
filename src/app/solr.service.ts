@@ -31,6 +31,7 @@ export class SolrService {
           'children': []
         };
 
+        // Aggregate on field type
         let aggregates: any = {};
         Object.entries(data.fields).forEach((value: any, key: number) => {
           // Create child holder if it doesn't already exist
@@ -42,7 +43,19 @@ export class SolrService {
           aggregates[value[1].type].push({'name': value[0], 'count': value[1].distinct});
         });
 
-        return aggregates;
+        // Build hierarchy structure from aggregate
+        for (let key in aggregates) {
+            let child: any = {name: key, children: []};
+
+            for ( let subKey of aggregates[key] ) {
+                let element = {name: subKey.name, count: subKey.count};
+                child.children.push(element);
+            }
+
+            transform.children.push(child);
+        }
+
+        return transform;
       })
     );
   }

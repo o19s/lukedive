@@ -3,6 +3,7 @@ import { Component, ViewEncapsulation } from '@angular/core';
 import { SolrService } from './../../solr.service';
 
 import * as d3 from 'd3-selection';
+import * as d3Hierarchy from 'd3-hierarchy';
 import * as d3Scale from 'd3-scale';
 import * as d3Shape from 'd3-shape';
 import * as d3Array from 'd3-array';
@@ -52,7 +53,7 @@ export class D3TreemapComponent {
 
 
   private initSvg() {
-    this.svg = d3.select('svg');
+    this.svg = d3.select('svg.treemap');
     this.width = +this.svg.attr('width') - this.margin.left - this.margin.right;
     this.height = +this.svg.attr('height') - this.margin.top - this.margin.bottom;
     this.g = this.svg.append('g')
@@ -60,6 +61,34 @@ export class D3TreemapComponent {
   }
 
   private drawTreemap() {
+    let root = d3Hierarchy.hierarchy(this.fieldData).sum((d) => d.count);
 
+    d3Hierarchy.treemap()
+      .size([this.width, this.height])
+      .paddingTop(28)
+      .paddingRight(7)
+      .paddingInner(3)
+      (root);
+
+    // Color scale
+    var color = d3Scale.scaleOrdinal()
+      .domain(['text'])
+      .range(['#402D54']);
+
+    var opacity = d3Scale.scaleLinear()
+      .domain([10, 30])
+      .range([.5,1]);
+
+    this.svg.selectAll('rect')
+      .data(root.leaves())
+      .enter()
+      .append('rect')
+        .attr('x', (d) => d.x0)
+        .attr('y', (d) => d.y0)
+        .attr('width', (d) => d.x1 - d.x0)
+        .attr('height', (d) => d.y1 - d.y0)
+        .style('stroke', 'black')
+        .style('fill', (d) => color(d.parent.data.name))
+        .style('opacity', (d) => opacity(d.data.count))
   }
 }
