@@ -58,51 +58,63 @@ export class D3TreemapComponent {
     this.svg = d3.select('svg.treemap');
     this.width = +this.svg.attr('width') - this.margin.left - this.margin.right;
     this.height = +this.svg.attr('height') - this.margin.top - this.margin.bottom;
-    this.g = this.svg.append('g')
-      .attr('transform', 'translate(' + this.margin.left + ',' + this.margin.top + ')');
   }
 
   private drawTreemap() {
-    let root = d3Hierarchy.hierarchy(this.fieldData).sum((d) => d.count);
+    let root = d3Hierarchy.hierarchy(this.fieldData)
+      .eachBefore( (d) => d.data.id = (d.parent ? d.parent.data.id + '.' : '') + d.data.name)
+      .sum((d) => d.count)
+      .sort((a, b) => b.height - a.height || b.value - a.value);
 
     // This call figures out positions and augments the root data
     d3Hierarchy.treemap()
+      .tile(d3Hierarchy.treemapResquarify)
       .size([this.width, this.height])
-      .paddingTop(28)
-      .paddingRight(7)
-      .paddingInner(3)
+      .round(true)
+      .paddingInner(1)
       (root);
 
+    // Setup fader and color scale
     let fader = (color) => d3Interpolate.interpolateRgb(color, '#fff')(0.2);
     let color = d3Scale.scaleOrdinal(d3Chromatic.schemePaired.map(fader));
 
     // Opacity scale
+    // TODO: Factor this is with a dynamic range based off the total numTerms
     var opacity = d3Scale.scaleLinear()
       .domain([10, 30])
       .range([.5,1]);
 
-    // Build the rectangles
-    this.svg.selectAll('rect')
+    console.log(root.leaves());
+    let cell = this.svg.selectAll('g')
       .data(root.leaves())
-      .enter()
-      .append('rect')
-        .attr('x', (d) => d.x0)
-        .attr('y', (d) => d.y0)
-        .attr('width', (d) => d.x1 - d.x0)
-        .attr('height', (d) => d.y1 - d.y0)
-        .style('stroke', 'black')
-        .style('fill', (d) => color(d.parent.data.name))
-        .style('opacity', (d) => opacity(d.data.count));
+      .enter().append('g')
+        .attr('transform', (d) => `translate(${d.x0},${d.y0})`);
 
-    // Field name labels
-    this.svg.selectAll('text')
-      .data(root.leaves())
-      .enter()
-      .append('text')
-      .attr('x', (d) => d.x0 + 5)
-      .attr('y', (d) => d.y0 + 20)
-      .text((d) => d.data.name)
-      .attr('font-size', '8px')
-      .attr('fill', 'black');
+    // Create rectangles
+    cell.append('rect')
+      .attr('id', (d) => d.data.id)
+      .attr('width', (d) => d.x1 - d.x0)
+      .attr('height', (d) => d.y1 - d.y0)
+      .attr('fill', (d) => color(d.parent.data.id));
+
+    // Setup clip paths
+    cell.append('clipPath')
+        .attr('id', (d) => `clip-${d.data.id}`)
+      .append('use')
+        .attr('xlink:href', (d) => `#${d.data.id}`);
+
+    // Clip paths and render text
+    cell.append('text')
+        .attr('clip-path', (d) => `url(#clip-${d.data.id})`)
+      .selectAll('tspan')
+        .data((d) => d.data.name.split(/(?=[A-Z][^A-Z])/g)) // TODO: WTF is this doing?
+      .enter().append('tspan')
+        .attr('x', 4)
+        .attr('y', (d, i) => 13 + i * 10)
+        .text((d) => d)
+
+    // Add title to the cell
+    cell.append('title')
+      .text((d) => `${d.data.id}\n${d.data.count}`);
   }
 }
