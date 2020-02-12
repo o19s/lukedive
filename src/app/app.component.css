@@ -22,6 +22,12 @@
     margin-right: 5px;
 }
 
+.img-logo {
+    width: 38px;
+    margin-top: 5px;
+
+}
+
 .footer {
     width: 100%;
     text-align: center;
@@ -31,6 +37,10 @@
 .relevancy-marketing {
     margin-left: auto;
     margin-right: 10px;
+}
+
+.relevancy-marketing a {
+    color: white;
 }
 
 .url-textbox {
