@@ -27,34 +27,41 @@ export class D3BarComponent {
 
   private fieldData: any;
 
-  private solrUrl = 'http://quepid-solr.dev.o19s.com:8985/solr/tmdb/admin/luke?fl=*';
+  private solrUrl = this.solr.activeUrl;
 
   constructor(
     private solr: SolrService
   ) { }
 
   ngOnInit() {
-    // Snag the luke data from TMDB
-    // TODO: Hook up a textbox and form so the user can specify any URL
+    // Subscribe to the search URL being changed
+    this.solr.onUrlChanged.subscribe( () => {
+        this.solrUrl = this.solr.activeUrl;
+        this.refresh();
+    });
+
+    this.refresh();
+  }
+
+  refresh() {
     this.solr.fetchLukeCounts(this.solrUrl)
       .subscribe(
         (data: any) => {
             this.fieldData = data;
-            this.refresh();
+            this.initSvg();
+            this.initAxis();
+            this.drawAxis();
+            this.drawBars();
         }
       );
   }
 
-  refresh() {
-    this.initSvg();
-    this.initAxis();
-    this.drawAxis();
-    this.drawBars();
-  }
-
 
   private initSvg() {
-    this.svg = d3.select('svg');
+    // Clear existing
+    d3.selectAll('svg.termbar > *').remove();
+
+    this.svg = d3.select('svg.termbar');
     this.width = +this.svg.attr('width') - this.margin.left - this.margin.right;
     this.height = +this.svg.attr('height') - this.margin.top - this.margin.bottom;
     this.g = this.svg.append('g')

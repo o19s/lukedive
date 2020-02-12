@@ -7,11 +7,16 @@
 
 
 <div class="main-container">
-    <span>[Insert form here for specifying a Solr URL]</span><br/>
+    <form class="basic-form" (ngSubmit)="updateUrl()">
+        <input class="url-textbox" type="text" [(ngModel)]="solrUrl" name="solrUrl">
+        <button (click)="updateUrl()">Run</button>
+    </form>
+
+    <d3-bar></d3-bar>
+    <d3-treemap></d3-treemap>
+
 </div>
 
-<d3-bar></d3-bar>
-<d3-treemap></d3-treemap>
 
 <div class="footer">
     <span class="footer-text">Copyright 2020 Opensource Connections LLC</span>

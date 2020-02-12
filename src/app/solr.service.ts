@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { EventEmitter, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 import { map } from 'rxjs/operators';
@@ -7,6 +7,11 @@ import { map } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class SolrService {
+  activeUrl: string = 'http://quepid-solr.dev.o19s.com:8985/solr/tmdb';
+
+  // Emitters
+  onUrlChanged = new EventEmitter<any>();
+
   constructor(
     private http: HttpClient
   ) { }
@@ -16,7 +21,8 @@ export class SolrService {
   *
   */
   fetchLuke(url: string) {
-    return this.http.jsonp(url, 'json.wrf');
+    let fullLukeUrl = url + '/admin/luke?fl=*';
+    return this.http.jsonp(fullLukeUrl, 'json.wrf');
   }
 
   /**

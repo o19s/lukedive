@@ -30,31 +30,38 @@ export class D3TreemapComponent {
 
   private fieldData: any;
 
-  private solrUrl = 'http://quepid-solr.dev.o19s.com:8985/solr/tmdb/admin/luke?fl=*';
+  private solrUrl = this.solr.activeUrl;
 
   constructor(
     private solr: SolrService
   ) { }
 
   ngOnInit() {
-    // Snag the luke data from TMDB
-    // TODO: Hook up a textbox and form so the user can specify any URL
+    // Subscribe to the search URL being changed
+    this.solr.onUrlChanged.subscribe( () => {
+        this.solrUrl = this.solr.activeUrl;
+        this.refresh();
+    });
+
+    this.refresh();
+  }
+
+  refresh() {
     this.solr.fetchLukeAggregates(this.solrUrl)
       .subscribe(
         (data: any) => {
             this.fieldData = data;
-            this.refresh();
+            this.initSvg();
+            this.drawTreemap();
         }
       );
   }
 
-  refresh() {
-    this.initSvg();
-    this.drawTreemap();
-  }
-
 
   private initSvg() {
+    // Clear existing
+    d3.selectAll('svg.treemap > *').remove();
+
     this.svg = d3.select('svg.treemap');
     this.width = +this.svg.attr('width') - this.margin.left - this.margin.right;
     this.height = +this.svg.attr('height') - this.margin.top - this.margin.bottom;
@@ -84,7 +91,6 @@ export class D3TreemapComponent {
       .domain([10, 30])
       .range([.5,1]);
 
-    console.log(root.leaves());
     let cell = this.svg.selectAll('g')
       .data(root.leaves())
       .enter().append('g')
