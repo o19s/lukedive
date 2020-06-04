@@ -21,7 +21,7 @@ export class SolrService {
   *
   */
   fetchLuke(url: string) {
-    let fullLukeUrl = url + '/admin/luke?fl=*';
+    let fullLukeUrl = url + '/admin/luke?fl=*&wt=json';
     return this.http.jsonp(fullLukeUrl, 'json.wrf');
   }
 
